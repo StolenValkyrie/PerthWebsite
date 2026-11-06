@@ -26,4 +26,5 @@ function start(){
 fetch("/api/stats").then(function(r){ return r.json(); }).then(function(d){
   if (d.members) STATS.members = d.members;
   if (d.online) STATS.online = d.online;
+  if (d.staff) STATS.staff = d.staff;
 }).catch(function(){}).then(start);

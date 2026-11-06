@@ -87,11 +87,30 @@ export default {
       return new Response(null, { status: 302, headers: { Location: "/", "Set-Cookie": setCookie("pr_session", "", 0) } });
     }
 
+    if (path === "/api/bot/stats" && req.method === "POST") {
+      const auth = req.headers.get("Authorization") || "";
+      if (!env.BOT_PUSH_SECRET || !safeEq(auth, "Bearer " + env.BOT_PUSH_SECRET)) return json({ error: "Unauthorized" }, 401);
+      let b; try { b = await req.json(); } catch { return json({ error: "Bad request" }, 400); }
+      const n = (v) => (Number.isInteger(v) && v >= 0 && v < 1e7 ? v : null);
+      await env.DB.prepare("INSERT INTO stats (id, members, online, staff, updated) VALUES (1,?,?,?,?) ON CONFLICT(id) DO UPDATE SET members=excluded.members, online=excluded.online, staff=excluded.staff, updated=excluded.updated")
+        .bind(n(b.members), n(b.online), n(b.staff), Math.floor(Date.now() / 1000)).run();
+      return json({ ok: true });
+    }
+
     if (path === "/api/stats") {
-      const r = await dc(env, `/guilds/${env.GUILD_ID}?with_counts=true`);
-      if (!r.ok) return json({});
-      const g = await r.json();
-      return json({ members: g.approximate_member_count, online: g.approximate_presence_count }, 200, { "Cache-Control": "public, max-age=60" });
+      // Prefer numbers pushed by the bot (accurate); fall back to Discord's approximate counts if they're missing or stale.
+      const row = await env.DB.prepare("SELECT members, online, staff, updated FROM stats WHERE id = 1").first();
+      const fresh = row && Date.now() / 1000 - row.updated < 900;
+      const out = fresh ? { members: row.members, online: row.online, staff: row.staff } : {};
+      if (out.members == null || out.online == null) {
+        const r = await dc(env, `/guilds/${env.GUILD_ID}?with_counts=true`);
+        if (r.ok) {
+          const g = await r.json();
+          if (out.members == null) out.members = g.approximate_member_count;
+          if (out.online == null) out.online = g.approximate_presence_count;
+        }
+      }
+      return json(out, 200, { "Cache-Control": "public, max-age=60" });
     }
 
     if (path === "/dashboard") {
