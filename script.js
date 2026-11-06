@@ -2,7 +2,7 @@ var DISCORD_INVITE = "https://discord.gg/stwdgFEWHR";
 var EVENTS_HOSTED = 0; // Set this by hand; the bot doesn't track events.
 
 // No made-up numbers: members, online and staff only show what the server reports.
-var STATS = { members: null, online: null, staff: null, events: EVENTS_HOSTED };
+var STATS = { members: null, online: null, staff: 4, events: EVENTS_HOSTED };
 
 document.querySelectorAll("[data-discord]").forEach(function(a){ a.href = DISCORD_INVITE; if (DISCORD_INVITE !== "#") { a.target = "_blank"; a.rel = "noopener"; } });
 
