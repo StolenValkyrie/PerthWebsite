@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Staff dashboard | Perth Roleplay</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>
+.top{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px solid var(--line)}
+main{padding:50px 0 80px}
+.form{display:grid;gap:14px;margin-top:24px}
+label{display:grid;gap:6px;font-size:.9rem;color:var(--muted)}
+input,select,textarea{background:rgba(5,7,13,.6);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:12px 14px;font:inherit}
+.msg{min-height:1.5em;font-weight:600}.msg.err{color:#ff7a8a}.msg.ok{color:#5be3a6}
+table{width:100%;border-collapse:collapse;margin-top:18px;font-size:.92rem}
+th,td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500}
+button.btn{cursor:pointer;font:inherit;font-weight:600;color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap top">
+  <a class="brand" href="/"><i></i>Perth Roleplay staff</a>
+  <span><span id="who">Loading…</span> · <a href="/auth/logout" style="color:var(--blue)">Log out</a></span>
+</div>
+<main class="wrap">
+  <div class="glass">
+    <h2 style="font-size:1.4rem">Moderate a member</h2>
+    <form class="form" id="f">
+      <label>Discord user ID<input id="uid" inputmode="numeric" required placeholder="Right-click user in Discord, Copy User ID"></label>
+      <label>Action<select id="act"><option value="warn">Warn</option><option value="timeout">Timeout</option><option value="kick">Kick</option><option value="ban">Ban</option></select></label>
+      <label id="minwrap" hidden>Timeout length (minutes)<input id="min" type="number" min="1" max="40320" value="60"></label>
+      <label>Reason<textarea id="reason" rows="3" maxlength="400" required></textarea></label>
+      <button class="btn primary" type="submit">Submit action</button>
+      <div class="msg" id="msg" role="status"></div>
+    </form>
+  </div>
+  <div class="glass" style="margin-top:20px">
+    <h2 style="font-size:1.4rem">Recent actions</h2>
+    <table><thead><tr><th>When</th><th>Staff</th><th>Action</th><th>User ID</th><th>Reason</th></tr></thead><tbody id="log"></tbody></table>
+  </div>
+</main>
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var NEEDS = { warn: 1, timeout: 1, kick: 2, ban: 3 }, level = 0;
+function say(t, ok) { $("msg").textContent = t; $("msg").className = "msg " + (ok ? "ok" : "err"); }
+async function loadLog() {
+  var r = await (await fetch("/api/log")).json(), body = $("log");
+  body.textContent = "";
+  (r.rows || []).forEach(function (x) {
+    var tr = document.createElement("tr");
+    [new Date(x.ts * 1000).toLocaleString("en-AU", { timeZone: "Australia/Perth" }), x.actor_name, x.action + (x.minutes ? " (" + x.minutes + "m)" : ""), x.target_id, x.reason].forEach(function (v) {
+      var td = document.createElement("td"); td.textContent = v; tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+(async function () {
+  var r = await fetch("/api/me");
+  if (!r.ok) { location.href = "/auth/login"; return; }
+  var me = await r.json(); level = me.level;
+  $("who").textContent = me.name;
+  Array.prototype.forEach.call($("act").options, function (o) { if (level < NEEDS[o.value]) o.disabled = true; });
+  loadLog();
+})();
+$("act").addEventListener("change", function () { $("minwrap").hidden = $("act").value !== "timeout"; });
+$("f").addEventListener("submit", async function (e) {
+  e.preventDefault(); say("Working…", true);
+  var r = await fetch("/api/mod", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: $("uid").value.trim(), action: $("act").value, minutes: $("min").value, reason: $("reason").value }) });
+  var d = await r.json().catch(function () { return {}; });
+  if (r.ok) { say("Done.", true); $("reason").value = ""; loadLog(); } else say(d.error || "Something went wrong.", false);
+});
+</script>
+</body>
+</html>

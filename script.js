@@ -1,4 +1,4 @@
-// EDIT THESE: your Discord invite and real community numbers.
+// Fallback numbers; members and online are replaced by live data from /api/stats.
 var DISCORD_INVITE = "https://discord.gg/stwdgFEWHR";
 var STATS = { members: 14, online: 7, staff: 4, events: 0 };
 
@@ -16,8 +16,14 @@ function run(el){
   function step(t){ if (!t0) t0 = t; var p = Math.min((t - t0) / 1400, 1); el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))).toLocaleString("en-AU"); if (p < 1) requestAnimationFrame(step); }
   requestAnimationFrame(step);
 }
-var els = document.querySelectorAll("[data-count]");
-if ("IntersectionObserver" in window) {
-  var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } }); }, { threshold: .6 });
-  els.forEach(function(el){ io.observe(el); });
-} else { els.forEach(run); }
+function start(){
+  var els = document.querySelectorAll("[data-count]");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } }); }, { threshold: .6 });
+    els.forEach(function(el){ io.observe(el); });
+  } else { els.forEach(run); }
+}
+fetch("/api/stats").then(function(r){ return r.json(); }).then(function(d){
+  if (d.members) STATS.members = d.members;
+  if (d.online) STATS.online = d.online;
+}).catch(function(){}).then(start);
