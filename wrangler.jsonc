@@ -1,4 +1,3 @@
-
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "perthwebsite",
@@ -7,6 +6,18 @@
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
-    "not_found_handling": "404-page"
-  }
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*", "/auth/*", "/dashboard"]
+  },
+  "vars": {
+    "DISCORD_CLIENT_ID": "PASTE_YOUR_CLIENT_ID",
+    "GUILD_ID": "PASTE_YOUR_SERVER_ID"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "perth-roleplay",
+      "database_id": "PASTE_DATABASE_ID"
+    }
+  ]
 }

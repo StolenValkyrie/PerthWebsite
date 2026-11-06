@@ -1,0 +1,10 @@
+worker.js
+wrangler.jsonc
+schema.sql
+package.json
+package-lock.json
+node_modules
+.assetsignore
+.gitignore
+.dev.vars
+.env

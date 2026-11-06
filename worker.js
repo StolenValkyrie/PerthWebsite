@@ -99,7 +99,8 @@ export default {
 
     if (path === "/api/stats") {
       // Prefer numbers pushed by the bot (accurate); fall back to Discord's approximate counts if they're missing or stale.
-      const row = await env.DB.prepare("SELECT members, online, staff, updated FROM stats WHERE id = 1").first();
+      let row = null;
+      try { row = await env.DB.prepare("SELECT members, online, staff, updated FROM stats WHERE id = 1").first(); } catch (e) { /* stats table or DB binding missing: use Discord's counts */ }
       const fresh = row && Date.now() / 1000 - row.updated < 900;
       const out = fresh ? { members: row.members, online: row.online, staff: row.staff } : {};
       if (out.members == null || out.online == null) {
@@ -108,6 +109,8 @@ export default {
           const g = await r.json();
           if (out.members == null) out.members = g.approximate_member_count;
           if (out.online == null) out.online = g.approximate_presence_count;
+        } else {
+          out.error = "Discord request failed (" + r.status + "). Check DISCORD_BOT_TOKEN and GUILD_ID.";
         }
       }
       return json(out, 200, { "Cache-Control": "public, max-age=60" });
