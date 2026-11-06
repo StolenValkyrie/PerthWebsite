@@ -10,14 +10,14 @@
     "run_worker_first": ["/api/*", "/auth/*", "/dashboard"]
   },
   "vars": {
-    "DISCORD_CLIENT_ID": "PASTE_YOUR_CLIENT_ID",
-    "GUILD_ID": "PASTE_YOUR_SERVER_ID"
+    "DISCORD_CLIENT_ID": "1566068953191555102",
+    "GUILD_ID": "1566066035084234762"
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "perth-roleplay",
-      "database_id": "PASTE_DATABASE_ID"
+      "database_id": "ac75454a-2726-43e5-80c2-5c33178ef209"
     }
   ]
 }
