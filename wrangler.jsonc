@@ -1,6 +1,12 @@
+
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "perthwebsite",
-  "main": "index.js",
-  "compatibility_date": "2026-11-06"
+  "main": "worker.js",
+  "compatibility_date": "2026-11-06",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  }
 }
