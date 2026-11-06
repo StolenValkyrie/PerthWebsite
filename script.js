@@ -1,6 +1,6 @@
 // EDIT THESE: your Discord invite and real community numbers.
-var DISCORD_INVITE = "#";
-var STATS = { members: 0, online: 0, staff: 0, events: 0 };
+var DISCORD_INVITE = "https://discord.gg/stwdgFEWHR";
+var STATS = { members: 14, online: 7, staff: 4, events: 0 };
 
 document.querySelectorAll("[data-discord]").forEach(function(a){ a.href = DISCORD_INVITE; if (DISCORD_INVITE !== "#") { a.target = "_blank"; a.rel = "noopener"; } });
 
