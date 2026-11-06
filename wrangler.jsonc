@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "perthwebsite",
-  "main": "src/index.js",
+  "main": "index.js",
   "compatibility_date": "2026-11-06"
 }
