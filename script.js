@@ -1,6 +1,8 @@
-// Fallback numbers; members and online are replaced by live data from /api/stats.
 var DISCORD_INVITE = "https://discord.gg/stwdgFEWHR";
-var STATS = { members: 14, online: 7, staff: 4, events: 0 };
+var EVENTS_HOSTED = 0; // Set this by hand; the bot doesn't track events.
+
+// No made-up numbers: members, online and staff only show what the server reports.
+var STATS = { members: null, online: null, staff: null, events: EVENTS_HOSTED };
 
 document.querySelectorAll("[data-discord]").forEach(function(a){ a.href = DISCORD_INVITE; if (DISCORD_INVITE !== "#") { a.target = "_blank"; a.rel = "noopener"; } });
 
@@ -10,7 +12,8 @@ links.addEventListener("click", function(e){ if (e.target.tagName === "A") { lin
 
 var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function run(el){
-  var end = STATS[el.dataset.key] || 0;
+  var end = STATS[el.dataset.key];
+  if (typeof end !== "number") { el.textContent = "—"; return; }
   if (reduce || !end) { el.textContent = end.toLocaleString("en-AU"); return; }
   var t0 = null;
   function step(t){ if (!t0) t0 = t; var p = Math.min((t - t0) / 1400, 1); el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))).toLocaleString("en-AU"); if (p < 1) requestAnimationFrame(step); }
@@ -23,8 +26,13 @@ function start(){
     els.forEach(function(el){ io.observe(el); });
   } else { els.forEach(run); }
 }
-fetch("/api/stats").then(function(r){ return r.json(); }).then(function(d){
-  if (d.members) STATS.members = d.members;
-  if (d.online) STATS.online = d.online;
-  if (d.staff) STATS.staff = d.staff;
-}).catch(function(){}).then(start);
+
+fetch("/api/stats", { cache: "no-store" })
+  .then(function(r){ return r.ok ? r.json() : {}; })
+  .then(function(d){
+    ["members", "online", "staff"].forEach(function(k){
+      if (typeof d[k] === "number") STATS[k] = d[k]; // accepts 0 too
+    });
+  })
+  .catch(function(){})
+  .then(start);
